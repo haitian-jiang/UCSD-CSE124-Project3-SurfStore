@@ -67,5 +67,24 @@ func main() {
 }
 
 func startServer(hostAddr string, serviceType string, blockStoreAddrs []string) error {
-	panic("todo")
+	if serviceType == "meta" || serviceType == "both" {
+		metaStore := surfstore.NewMetaStore(blockStoreAddrs)
+		if err := rpc.Register(&metaStore); err != nil {
+			log.Println(err)
+		}
+	}
+
+	if serviceType == "block" || serviceType == "both" {
+		blockStore := surfstore.NewBlockStore()
+		if err := rpc.Register(&blockStore); err != nil {
+			log.Println(err)
+		}
+	}
+
+	l, err := net.Listen("tcp", hostAddr)
+	if err != nil {
+		return err
+	}
+	err = http.Serve(l, nil)
+	return err
 }
