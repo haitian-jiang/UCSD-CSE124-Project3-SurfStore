@@ -29,7 +29,6 @@ func (surfClient *RPCClient) GetBlock(blockHash string, blockStoreAddr string, b
 }
 
 func (surfClient *RPCClient) PutBlock(block Block, blockStoreAddr string, succ *bool) error {
-	//panic("todo")
 	// connect to the server
 	conn, e := rpc.DialHTTP("tcp", blockStoreAddr)
 	if e != nil {
@@ -48,7 +47,6 @@ func (surfClient *RPCClient) PutBlock(block Block, blockStoreAddr string, succ *
 }
 
 func (surfClient *RPCClient) HasBlocks(blockHashesIn []string, blockStoreAddr string, blockHashesOut *[]string) error {
-	//panic("todo")
 	// connect to the server
 	conn, e := rpc.DialHTTP("tcp", blockStoreAddr)
 	if e != nil {
@@ -67,23 +65,63 @@ func (surfClient *RPCClient) HasBlocks(blockHashesIn []string, blockStoreAddr st
 }
 
 func (surfClient *RPCClient) GetFileInfoMap(succ *bool, serverFileInfoMap *map[string]FileMetaData) error {
-	panic("todo")
+	// connect to the server
+	conn, e := rpc.DialHTTP("tcp", surfClient.ServerAddr)
+	if e != nil {
+		return e
+	}
 
+	// perform the call
+	e = conn.Call("MetaStore.GetFileInfoMap", succ, serverFileInfoMap)
+	if e != nil {
+		conn.Close()
+		return e
+	}
+
+	// close the connection
+	return conn.Close()
 }
 
 func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersion *int) error {
-	panic("todo")
+	// connect to the server
+	conn, e := rpc.DialHTTP("tcp", surfClient.ServerAddr)
+	if e != nil {
+		return e
+	}
+
+	// perform the call
+	e = conn.Call("MetaStore.UpdateFile", fileMetaData, latestVersion)
+	if e != nil {
+		conn.Close()
+		return e
+	}
+
+	// close the connection
+	return conn.Close()
 }
 
 func (surfClient *RPCClient) GetBlockStoreMap(blockHashesIn []string, blockStoreMap *map[string][]string) error {
-	panic("todo")
+	// connect to the server
+	conn, e := rpc.DialHTTP("tcp", surfClient.ServerAddr)
+	if e != nil {
+		return e
+	}
+
+	// perform the call
+	e = conn.Call("MetaStore.GetBlockStoreMap", blockHashesIn, blockStoreMap)
+	if e != nil {
+		conn.Close()
+		return e
+	}
+
+	// close the connection
+	return conn.Close()
 }
 
 var _ ClientInterface = new(RPCClient)
 
 // Create an Surfstore RPC client
 func NewSurfstoreRPCClient(hostPort, baseDir string, blockSize int) RPCClient {
-
 	return RPCClient{
 		ServerAddr: hostPort,
 		BaseDir:    baseDir,

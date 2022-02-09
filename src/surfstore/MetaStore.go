@@ -12,6 +12,7 @@ type MetaStore struct {
 
 func (m *MetaStore) GetFileInfoMap(_ignore *bool, serverFileInfoMap *map[string]FileMetaData) error {
 	*serverFileInfoMap = m.FileMetaMap
+	*_ignore = true // todo: why
 	return nil
 }
 
