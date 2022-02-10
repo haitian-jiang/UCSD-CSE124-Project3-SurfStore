@@ -81,6 +81,7 @@ func startServer(hostAddr string, serviceType string, blockStoreAddrs []string) 
 		}
 	}
 
+	rpc.HandleHTTP()
 	l, err := net.Listen("tcp", hostAddr)
 	if err != nil {
 		return err

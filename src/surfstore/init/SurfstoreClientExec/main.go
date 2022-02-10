@@ -56,6 +56,12 @@ func main() {
 
 	hostPort := args[0]
 	baseDir := args[1]
+	_, err := os.Stat(baseDir)
+	if os.IsNotExist(err) { // newly added check
+		flag.Usage()
+		os.Exit(EX_USAGE)
+	}
+
 	blockSize, err := strconv.Atoi(args[2])
 	if err != nil {
 		flag.Usage()

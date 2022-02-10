@@ -1,6 +1,7 @@
 package surfstore
 
 import (
+	"fmt"
 	"net/rpc"
 )
 
@@ -85,6 +86,7 @@ func (surfClient *RPCClient) GetFileInfoMap(succ *bool, serverFileInfoMap *map[s
 func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersion *int) error {
 	// connect to the server
 	conn, e := rpc.DialHTTP("tcp", surfClient.ServerAddr)
+	fmt.Println(conn)
 	if e != nil {
 		return e
 	}
