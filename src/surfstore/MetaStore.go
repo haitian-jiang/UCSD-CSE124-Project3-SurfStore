@@ -31,7 +31,7 @@ func (m *MetaStore) UpdateFile(fileMetaData *FileMetaData, latestVersion *int) (
 	// previously existed file
 	if fileMetaData.Version != currFileMetaData.Version+1 {
 		*latestVersion = currFileMetaData.Version
-		return fmt.Errorf("Invalid version: current version on server is %d", currFileMetaData.Version)
+		return fmt.Errorf("Invalid version for %s: current version on server is %d", filename, currFileMetaData.Version)
 	} else {
 		*latestVersion = fileMetaData.Version
 		m.FileMetaMap[filename] = *fileMetaData
