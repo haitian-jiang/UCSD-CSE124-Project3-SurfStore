@@ -38,7 +38,7 @@ func ClientSync(client RPCClient) {
 	// new file from server
 	for filename, rmtFMD := range remoteFileMetaMap {
 		locFMD, ok := localFileMetaMap[filename]
-		if !ok && !isDeleted(rmtFMD) || rmtFMD.Version > locFMD.Version {
+		if !ok || rmtFMD.Version > locFMD.Version {
 			DownloadFileUpdateLocal(client, filename, &localFileMetaMap, &remoteFileMetaMap)
 		}
 	}
@@ -48,8 +48,8 @@ func ClientSync(client RPCClient) {
 		if !ok || locFMD.Version == rmtFMD.Version+1 {
 			UpdateFileToServer(client, filename, &localFileMetaMap)
 		} else if locFMD.Version > rmtFMD.Version+1 { // normally impossible
-			log.Println()
-			os.Exit(233)
+			log.Printf("Wrong version for %s", filename)
+			os.Exit(127)
 		} else if !isEqualHash(locFMD.BlockHashList, rmtFMD.BlockHashList) { // same version number, conflict
 			DownloadFileUpdateLocal(client, filename, &localFileMetaMap, &remoteFileMetaMap)
 		}
@@ -152,13 +152,13 @@ func GenLocalFileMetaMap(fileHashes map[string][]string, baseDir string) (map[st
 	} else if err != nil {
 		return nil, err
 	} else { // index.txt exists
-		f, _ := os.Open("index.txt")
+		f, _ := os.Open(baseDir + "/index.txt")
 		reader := bufio.NewScanner(f)
 		for reader.Scan() {
 			line := strings.Split(reader.Text(), ",")
 			filename := line[0]
 			version, _ := strconv.Atoi(line[1])
-			hashList := strings.Split(line[3], " ")
+			hashList := strings.Split(line[2], " ")
 			fileMetaMap[filename] = FileMetaData{filename, version, hashList}
 		}
 		f.Close()
@@ -185,8 +185,21 @@ func GenLocalFileMetaMap(fileHashes map[string][]string, baseDir string) (map[st
 }
 
 func DownloadFileUpdateLocal(client RPCClient, filename string, locFMM *map[string]FileMetaData, rmtFMM *map[string]FileMetaData) {
-	fileHashList := (*rmtFMM)[filename].BlockHashList
+	// update local file meta map
+	(*locFMM)[filename] = (*rmtFMM)[filename]
 
+	// no block to download for deleted files
+	if isDeleted((*rmtFMM)[filename]) {
+		// delete local file if exists
+		_, err := os.Stat(client.BaseDir + "/" + filename)
+		if err == nil {
+			os.Remove(client.BaseDir + "/" + filename)
+		}
+		return
+	}
+
+	// obtain blockstore server address
+	fileHashList := (*rmtFMM)[filename].BlockHashList
 	var blockStoreMap map[string][]string
 	client.GetBlockStoreMap(fileHashList, &blockStoreMap)
 
@@ -195,7 +208,7 @@ func DownloadFileUpdateLocal(client RPCClient, filename string, locFMM *map[stri
 	for blockAddr, blockList := range blockStoreMap {
 		for _, hash := range blockList {
 			var block Block
-			err := client.GetBlock(hash, blockAddr, &block)
+			client.GetBlock(hash, blockAddr, &block)
 			fileBlockMap[hash] = block
 		}
 	}
@@ -208,20 +221,10 @@ func DownloadFileUpdateLocal(client RPCClient, filename string, locFMM *map[stri
 
 	// store file
 	os.WriteFile(client.BaseDir+"/"+filename, fileContent, 0640)
-
-	(*locFMM)[filename] = FileMetaData{filename, (*rmtFMM)[filename].Version, fileHashList}
 }
 
 func UpdateFileToServer(client RPCClient, filename string, locFMM *map[string]FileMetaData) {
 	fmd := (*locFMM)[filename]
-
-	// update meta data
-	var latestVer int
-	err := client.UpdateFile(&fmd, &latestVer)
-	if err != nil {
-		log.Println(err)
-		return
-	}
 
 	// get blockstore server address
 	var blockStoreMap map[string][]string
@@ -242,6 +245,13 @@ func UpdateFileToServer(client RPCClient, filename string, locFMM *map[string]Fi
 			var succ bool
 			client.PutBlock(blocks[hash], blockAddr, &succ)
 		}
+	}
+
+	// update meta data
+	var latestVer int
+	err := client.UpdateFile(&fmd, &latestVer)
+	if err != nil {
+		log.Println(err)
 	}
 }
 
