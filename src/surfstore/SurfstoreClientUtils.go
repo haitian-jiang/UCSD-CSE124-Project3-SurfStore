@@ -25,14 +25,12 @@ func ClientSync(client RPCClient) {
 	// generate current local index
 	localFileMetaMap, err := GenLocalFileMetaMap(currFileHashes, client.BaseDir)
 	handle(err)
-	PrintMetaMap(localFileMetaMap)
 
 	// get remote index
 	var succ bool
 	var remoteFileMetaMap map[string]FileMetaData
 	err = client.GetFileInfoMap(&succ, &remoteFileMetaMap)
 	handle(err)
-	PrintMetaMap(remoteFileMetaMap)
 
 	// merge and update
 	// new file from server
@@ -79,6 +77,9 @@ func isEqualHash(hashList1 []string, hashList2 []string) bool {
 }
 
 func isDeleted(fileMetaData FileMetaData) bool {
+	if len(fileMetaData.BlockHashList) == 0 {
+		return false
+	}
 	if fileMetaData.BlockHashList[0] == "0" {
 		return true
 	}
@@ -159,6 +160,9 @@ func GenLocalFileMetaMap(fileHashes map[string][]string, baseDir string) (map[st
 			filename := line[0]
 			version, _ := strconv.Atoi(line[1])
 			hashList := strings.Split(line[2], " ")
+			if hashList[0] == "" {
+				hashList = nil // empty file
+			}
 			fileMetaMap[filename] = FileMetaData{filename, version, hashList}
 		}
 		f.Close()
