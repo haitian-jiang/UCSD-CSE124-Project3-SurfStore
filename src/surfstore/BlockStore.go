@@ -27,10 +27,10 @@ func (bs *BlockStore) PutBlock(block Block, succ *bool) error {
 	return nil
 }
 
-func (bs *BlockStore) HasBlocks(blockHashesIn []string, blockHashesOut *[]string) error {
+func (bs *BlockStore) HasBlocks(blockHashesIn []string, blockHashesOut *map[string]bool) error {
 	for _, hash := range blockHashesIn {
 		if _, ok := bs.BlockMap[hash]; ok {
-			*blockHashesOut = append(*blockHashesOut, hash)
+			(*blockHashesOut)[hash] = true
 		}
 	}
 	return nil

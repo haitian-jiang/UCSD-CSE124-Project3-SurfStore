@@ -1,7 +1,6 @@
 package surfstore
 
 import (
-	"fmt"
 	"net/rpc"
 )
 
@@ -47,7 +46,7 @@ func (surfClient *RPCClient) PutBlock(block Block, blockStoreAddr string, succ *
 	return conn.Close()
 }
 
-func (surfClient *RPCClient) HasBlocks(blockHashesIn []string, blockStoreAddr string, blockHashesOut *[]string) error {
+func (surfClient *RPCClient) HasBlocks(blockHashesIn []string, blockStoreAddr string, blockHashesOut *map[string]bool) error {
 	// connect to the server
 	conn, e := rpc.DialHTTP("tcp", blockStoreAddr)
 	if e != nil {
@@ -86,7 +85,6 @@ func (surfClient *RPCClient) GetFileInfoMap(succ *bool, serverFileInfoMap *map[s
 func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersion *int) error {
 	// connect to the server
 	conn, e := rpc.DialHTTP("tcp", surfClient.ServerAddr)
-	fmt.Println(conn)
 	if e != nil {
 		return e
 	}

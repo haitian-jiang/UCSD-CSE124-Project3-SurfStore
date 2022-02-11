@@ -41,7 +41,6 @@ func (m *MetaStore) UpdateFile(fileMetaData *FileMetaData, latestVersion *int) (
 }
 
 func (m *MetaStore) GetBlockStoreMap(blockHashesIn []string, blockStoreMap *map[string][]string) error {
-	//panic("todo")
 	*blockStoreMap = map[string][]string{m.BlockStoreAddr[0]: blockHashesIn}
 	return nil
 }

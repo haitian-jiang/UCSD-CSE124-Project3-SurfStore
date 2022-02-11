@@ -31,7 +31,7 @@ type BlockStoreInterface interface {
 	PutBlock(block Block, succ *bool) error
 
 	// Check if certain blocks are alredy present on the server
-	HasBlocks(blockHashesIn []string, blockHashesOut *[]string) error
+	HasBlocks(blockHashesIn []string, blockHashesOut *map[string]bool) error
 }
 
 type ClientInterface interface {
@@ -43,5 +43,5 @@ type ClientInterface interface {
 	// BlockStore
 	GetBlock(blockHash string, blockStoreAddr string, block *Block) error
 	PutBlock(block Block, blockStoreAddr string, succ *bool) error
-	HasBlocks(blockHashesIn []string, blockStoreAddr string, blockHashesOut *[]string) error
+	HasBlocks(blockHashesIn []string, blockStoreAddr string, blockHashesOut *map[string]bool) error
 }
